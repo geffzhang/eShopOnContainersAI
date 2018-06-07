@@ -15,7 +15,9 @@ namespace Microsoft.eShopOnContainers.WebMVC
                     return string.Empty;
                 switch (ProductSearchImageBased.ModelApproach)
                 {
-                    case ProductSearchImageBasedSchema.Approaches.CognitiveServices:
+                    case ProductSearchImageBasedSchema.Approaches.ComputerVision:
+                    case ProductSearchImageBasedSchema.Approaches.CustomVisionOffline:
+                    case ProductSearchImageBasedSchema.Approaches.CustomVisionOnline:
                         return ProductSearchImageBased.CognitiveUrl;
                     case ProductSearchImageBasedSchema.Approaches.TensorFlowCustom:
                     case ProductSearchImageBasedSchema.Approaches.TensorFlowPreTrained:
@@ -41,7 +43,9 @@ namespace Microsoft.eShopOnContainers.WebMVC
         public enum Approaches
         {
             Default,
-            CognitiveServices,
+            ComputerVision,
+            CustomVisionOnline,
+            CustomVisionOffline,
             TensorFlowPreTrained,
             TensorFlowCustom
         }
