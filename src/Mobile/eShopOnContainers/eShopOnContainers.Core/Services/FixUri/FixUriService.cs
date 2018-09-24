@@ -31,14 +31,14 @@ namespace eShopOnContainers.Core.Services.FixUri
             try
             {
                 if (!ViewModelLocator.UseMockService
-                    && _settingsService.UrlBase != GlobalSetting.DefaultEndpoint)
+                    && _settingsService.IdentityEndpointBase != GlobalSetting.DefaultEndpoint)
                 {
                     foreach (var catalogItem in catalogItems)
                     {
                         MatchCollection serverResult = IpRegex.Matches(catalogItem.PictureUri);
-                        MatchCollection localResult = IpRegex.Matches(_settingsService.UrlBase);
+                        MatchCollection localResult = IpRegex.Matches(_settingsService.IdentityEndpointBase);
 
-                        if (serverResult.Count != -1 && localResult.Count != -1)
+                        if (serverResult.Count > 0 && localResult.Count > 0)
                         {
                             var serviceIp = serverResult[0].Value;
                             var localIp = localResult[0].Value;
@@ -64,14 +64,14 @@ namespace eShopOnContainers.Core.Services.FixUri
             try
             {
                 if (!ViewModelLocator.UseMockService
-                    && _settingsService.UrlBase != GlobalSetting.DefaultEndpoint)
+                    && _settingsService.IdentityEndpointBase != GlobalSetting.DefaultEndpoint)
                 {
                     foreach (var basketItem in basketItems)
                     {
                         MatchCollection serverResult = IpRegex.Matches(basketItem.PictureUrl);
-                        MatchCollection localResult = IpRegex.Matches(_settingsService.UrlBase);
+                        MatchCollection localResult = IpRegex.Matches(_settingsService.IdentityEndpointBase);
 
-                        if (serverResult.Count != -1 && localResult.Count != -1)
+                        if (serverResult.Count > 0 && localResult.Count > 0)
                         {
                             var serviceIp = serverResult[0].Value;
                             var localIp = localResult[0].Value;
@@ -96,14 +96,14 @@ namespace eShopOnContainers.Core.Services.FixUri
             try
             {
                 if (!ViewModelLocator.UseMockService
-                    && _settingsService.UrlBase != GlobalSetting.DefaultEndpoint)
+                    && _settingsService.IdentityEndpointBase != GlobalSetting.DefaultEndpoint)
                 {
                     foreach (var campaignItem in campaignItems)
                     {
                         MatchCollection serverResult = IpRegex.Matches(campaignItem.PictureUri);
-                        MatchCollection localResult = IpRegex.Matches(_settingsService.UrlBase);
+                        MatchCollection localResult = IpRegex.Matches(_settingsService.IdentityEndpointBase);
 
-                        if (serverResult.Count != -1 && localResult.Count != -1)
+                        if (serverResult.Count > 0 && localResult.Count > 0)
                         {
                             var serviceIp = serverResult[0].Value;
                             var localIp = localResult[0].Value;

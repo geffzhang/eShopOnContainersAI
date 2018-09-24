@@ -7,8 +7,8 @@ using eShopOnContainers.Core.Extensions;
 using System.Collections.Generic;
 using eShopOnContainers.Core.Services.FixUri;
 using System.Linq;
-using eShopOnContainers.Core.Services.Dependency;
 using eShopOnContainers.Core.AI.ProductSearchImageBased;
+using eShopOnContainers.Core.Helpers;
 
 namespace eShopOnContainers.Core.Services.Catalog
 {
@@ -16,22 +16,20 @@ namespace eShopOnContainers.Core.Services.Catalog
     {
         private readonly IRequestProvider _requestProvider;
         private readonly IFixUriService _fixUriService;
-        private readonly IImageClassifier classifyImage;
-        private const string ApiUrlBase = "mobileshoppingapigw/api/v1/c/catalog";
-        private const string ApiAIUrlBase = "mobileshoppingapigw/api/v1/c/catalogai";
+        private readonly IOnlineImageClassifier imageClassifier;
+        private const string ApiAIUrlBase = "api/v1/c/catalogai";
+        private const string ApiUrlBase = "api/v1/c/catalog";
 
-        public CatalogService(IRequestProvider requestProvider, IFixUriService fixUriService, IDependencyService dependencyService)
+        public CatalogService(IRequestProvider requestProvider, IFixUriService fixUriService, IOnlineImageClassifier imageClassifier)
         {
             _requestProvider = requestProvider;
             _fixUriService = fixUriService;
-            this.classifyImage = dependencyService.Get<IImageClassifier>();
+            this.imageClassifier = imageClassifier;
         }
 
         public async Task<ObservableCollection<CatalogItem>> FilterAsync(int catalogBrandId, int catalogTypeId)
         {
-            UriBuilder builder = new UriBuilder(GlobalSetting.Instance.BaseEndpoint);
-            builder.Path = $"{ApiUrlBase}/items/type/{catalogTypeId}/brand/{catalogBrandId}";
-            string uri = builder.ToString();
+            var uri = UriHelper.CombineUri(GlobalSetting.Instance.GatewayShoppingEndpoint, $"{ApiUrlBase}/items/type/{catalogTypeId}/brand/{catalogBrandId}");
 
             CatalogRoot catalog = await _requestProvider.GetAsync<CatalogRoot>(uri);
 
@@ -43,9 +41,7 @@ namespace eShopOnContainers.Core.Services.Catalog
 
         public async Task<ObservableCollection<CatalogItem>> GetCatalogAsync()
         {
-            UriBuilder builder = new UriBuilder(GlobalSetting.Instance.BaseEndpoint);
-            builder.Path = $"{ApiUrlBase}/items";
-            string uri = builder.ToString();
+            var uri = UriHelper.CombineUri(GlobalSetting.Instance.GatewayShoppingEndpoint, $"{ApiUrlBase}/items");
 
             CatalogRoot catalog = await _requestProvider.GetAsync<CatalogRoot>(uri);
 
@@ -60,21 +56,26 @@ namespace eShopOnContainers.Core.Services.Catalog
 
         public async Task<ObservableCollection<CatalogItem>> FilterAsync(int catalogBrandId, int catalogTypeId, byte[] image)
         {
-            UriBuilder builder = new UriBuilder(GlobalSetting.Instance.BaseEndpoint);
-            //builder.Path = $"{ApiAIUrlBase}/items";
+            UriBuilder builder = new UriBuilder(GlobalSetting.Instance.GatewayShoppingEndpoint);
+            builder.Path = $"{ApiAIUrlBase}/items";
 
             const int page = 0;
             const int take = 12;
 
-            var tags = Enumerable.Empty<ImageClassification>();
+            var tags = Enumerable.Empty<string>();
             if (image != null)
-                tags = await classifyImage.ClassifyImage(image);
+            {
+                tags = await imageClassifier.ClassifyImage(image);
+                if (tags == null || !tags.Any())
+                    return new ObservableCollection<CatalogItem>();
+            }
+
 
             var brandQs = catalogBrandId == 0 ? String.Empty : $"&catalogBrandId={catalogBrandId}";
             var typeQs  = catalogTypeId == 0 ? String.Empty : $"&catalogTypeId={catalogTypeId}";
-            var tagsQs = (tags != null && tags.Any()) ? $"&tags={String.Join(",", tags.Select(t => t.Tag))}" : String.Empty;
+            var tagsQs = (tags != null && tags.Any()) ? $"&tags={String.Join(",", tags)}" : String.Empty;
 
-            builder.Path = $"{ApiAIUrlBase}/items?pageIndex={page}&pageSize={take}{brandQs}{typeQs}{tagsQs}";
+            builder.Query = $"?pageIndex={page}&pageSize={take}{brandQs}{typeQs}{tagsQs}";
 
             string uri = builder.ToString();
 
@@ -88,9 +89,7 @@ namespace eShopOnContainers.Core.Services.Catalog
 
         public async Task<ObservableCollection<CatalogBrand>> GetCatalogBrandAsync()
         {
-            UriBuilder builder = new UriBuilder(GlobalSetting.Instance.BaseEndpoint);
-            builder.Path = $"{ApiUrlBase}/catalogbrands";
-            string uri = builder.ToString();
+            var uri = UriHelper.CombineUri(GlobalSetting.Instance.GatewayShoppingEndpoint, $"{ApiUrlBase}/catalogbrands");
 
             IEnumerable<CatalogBrand> brands = await _requestProvider.GetAsync<IEnumerable<CatalogBrand>>(uri);
 
@@ -106,9 +105,7 @@ namespace eShopOnContainers.Core.Services.Catalog
 
         public async Task<ObservableCollection<CatalogType>> GetCatalogTypeAsync()
         {
-            UriBuilder builder = new UriBuilder(GlobalSetting.Instance.BaseEndpoint);
-            builder.Path = $"{ApiUrlBase}/catalogtypes";
-            string uri = builder.ToString();
+            var uri = UriHelper.CombineUri(GlobalSetting.Instance.GatewayShoppingEndpoint, $"{ApiUrlBase}/catalogtypes");
 
             IEnumerable<CatalogType> types = await _requestProvider.GetAsync<IEnumerable<CatalogType>>(uri);
 

@@ -81,7 +81,6 @@ services:
       - nosql.data
       - rabbitmq
 
-
   ordering.api:
     image: eshopai/ordering.api:${TAG:-latest}
     build:
@@ -146,6 +145,8 @@ services:
       - marketing.api
       - catalog.api
       - basket.api
+      - ai.productsearchimagebased.tensorflow.api
+      - ai.productsearchimagebased.azurecognitiveservices.api
  
   mobilemarketingapigw:
     image: eshopai/ocelotapigw:${TAG:-latest}
@@ -161,6 +162,7 @@ services:
       - marketing.api
       - catalog.api
       - basket.api
+      - locations.api
  
   webshoppingapigw:
     image: eshopai/ocelotapigw:${TAG:-latest}
@@ -237,12 +239,6 @@ services:
       - catalog.api
       - basket.api
 
-  webstatus:
-    image: eshopai/webstatus:${TAG:-latest}
-    build:
-      context: .
-      dockerfile: src/Web/WebStatus/Dockerfile
-
   webaiapigw:
     image: eshopai/ocelotapigw:${TAG:-latest}
     build:
@@ -255,6 +251,17 @@ services:
       - ai.productrecommender.azureml.api
       - ai.productsearchimagebased.tensorflow.api
       - ai.productsearchimagebased.azurecognitiveservices.api
+
+  bot.api:
+    image: eshopai/bot.api:${TAG:-latest}
+    build:
+      context: .
+      dockerfile: src/Bots/Bot.Core.API/Dockerfile
+      args:
+        configuration: "${configuration}"
+    depends_on:
+      - webshoppingapigw
+      - webaiapigw
 
   webraz:
     image: eshopai/webraz:${TAG:-latest}
